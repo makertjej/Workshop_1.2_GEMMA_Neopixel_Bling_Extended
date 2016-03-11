@@ -47,14 +47,14 @@ Adafruit_NeoPixel pixels = Adafruit_NeoPixel(16, PIN);
     // 1: FLUSHES THE RING WITH ONE COLOR AT A TIME
     // 2: RANDOM SPARKS - 1-4 LEDs ON AT A TIME
     // 3: Spinny wheels (2 LEDs ON AT A TIME)
-    // 4: COUNTER-ROTATION
+    // 4: COUNTER-ROTATION + COUNTER-FADE
     // 5: TWO COLOR WORMS
     // ( 5: ROTATING FLAG )
     // 6: COLOR-WORM 
     // 7: LIGHT-WORM
     // 8: WRITE YOUR OWN PATTERN
     
-    uint8_t  myPattern = 4; // ← Change this value to your desired pattern
+    uint8_t  myPattern = 5; // ← Change this value to your desired pattern
     
   //********************************** CHOOSE A SPEED SETTING ***********************************
   
@@ -221,7 +221,7 @@ void loop() // after setup() runs, loop() will run over and over as long as the 
        break;
 
     //**********************************************************************************************
-    // Case 4: Counter-rotation //NEEDS work?
+    // Case 4: Counter-rotation + counter-fade //NEEDS work?
     //**********************************************************************************************
      
     case 4:
@@ -256,23 +256,24 @@ void loop() // after setup() runs, loop() will run over and over as long as the 
     // Case 5: Two color worms //NEEDS WORK AND COMMENTS
     //**********************************************************************************************
     
-    case 5: //NEEDS WORK AND COMMENTS
+    case 5: //NEEDS WORK AND COMMENTS (Some comments are similar to case 4- jessica)
 
         static int16_t a = 0;
         static int16_t b = 0;
  
-        for (uint8_t pixel_index = 0; pixel_index < 16; pixel_index++) 
+        for (uint8_t pixel_index = 0; pixel_index < 16; pixel_index++)  //Sets color to each pixel position
         {
-            uint8_t color_1 = 255 / ((pixel_index + 8 + a) % 16);
-            uint8_t color_2 = 255 / ((pixel_index + b) % 16);
+          //Strength decreases while rotating counter-clockwise, with some of color_1 and color_2 in all 16 pixels
+            uint8_t color_1 = 255 / ((pixel_index + 8 + a) % 16); //Determines the strength of color_1 (red), offset by 8 pixels from color_2
+            uint8_t color_2 = 255 / ((pixel_index + b) % 16); //Determines the strength of color_2 (blue) 
             
             pixels.setPixelColor(pixel_index, color_1, 0, color_2);
         }
       
-        a++;
+        a++; // rotate clockwise?
         b++;
       
-        a = a % 16;
+        a = a % 16; //Calculates the remainder of a / 16
         b = b % 16;
         
         pixels.show();
