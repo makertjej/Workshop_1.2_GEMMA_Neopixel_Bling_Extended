@@ -39,7 +39,7 @@ Adafruit_NeoPixel pixels = Adafruit_NeoPixel(16, PIN);
       {0x9900ff, 0x0033ff, 0x00ff33, 0xffff00, 0xff9900, 0xff0000} // 5: RAINBOW
     }; //Try to create your own color palette by adding a row in the matrix
 
-    uint8_t myColorChart = 3; // ← Change this value to your desired color palette
+    uint8_t myColorChart = 5; // ← Change this value to your desired color palette
 
   //********************************** CHOOSE BLINKING PATTERN **********************************
 
@@ -49,20 +49,21 @@ Adafruit_NeoPixel pixels = Adafruit_NeoPixel(16, PIN);
     // 3: Spinny wheels (2 LEDs ON AT A TIME)
     // 4: COUNTER-ROTATION + COUNTER-FADE
     // 5: TWO COLOR WORMS
-    // ( 5: ROTATING FLAG )
-    // 6: COLOR-WORM 
-    // 7: LIGHT-WORM
-    // 8: WRITE YOUR OWN PATTERN
+    // 6: COLOR WORM 
+    // 7: LIGHT WORM
+    // 8: ROTATING FLAG
+    // 9: WRITE YOUR OWN PATTERN
     
-    uint8_t  myPattern = 5; // ← Change this value to your desired pattern
+    uint8_t  myPattern = 7; // ← Change this value to your desired pattern
     
   //********************************** CHOOSE A SPEED SETTING ***********************************
   
     // 0: FAST
     // 1: MEDIUM
     // 2: SLOW 
+    // 3: EXTRA SLOW (good for debugging!)
 
-    uint8_t mySpeed = 2; // ← Change this value to your desired speed
+    uint8_t mySpeed = 3; // ← Change this value to your desired speed
 
 //**********************************************************************************************
 // YOU’RE DONE!! Keep reading if you'd like to try your hand at even more customization
@@ -98,11 +99,16 @@ void setup() // setup() runs once
       case 1: // speed 1
           delayTime = 150;
       break;
-
-      default: // speed 2 (or any integer other than 0 or 1)
+      
+      case 2: // speed 1
           delayTime = 300;
       break;
+
+      default: // speed 3 (or any integer other than 0, 1, or 2)
+          delayTime = 750;
+      break;
     }
+    
 }
 
 //**********************************************************************************************
@@ -132,12 +138,12 @@ void loop() // after setup() runs, loop() will run over and over as long as the 
        //This is how we tell the Gemma our choice of pixel and color
        pixels.setPixelColor(pixel, red, green, blue);
        pixels.show(); 
-       delay(1000);
+       delay(delayTime);
        
        //Turn the pixel off
        pixels.setPixelColor(pixel, 0, 0, 0); 
        pixels.show(); 
-       delay(1000); 
+       delay(delayTime); 
        
        break;
 
@@ -146,6 +152,8 @@ void loop() // after setup() runs, loop() will run over and over as long as the 
     //**********************************************************************************************
     
     case 1:
+    
+      //Remember: pixel position # increases as you rotate counter-clockwise
 
       for(uint16_t pixel_index = 0; pixel_index < 16; pixel_index++) //Sets color to one pixel at the time
       {
@@ -184,7 +192,7 @@ void loop() // after setup() runs, loop() will run over and over as long as the 
       }
       
       pixels.show();
-      delay(delayTime+50);
+      delay(delayTime);
       
       for(uint16_t pixel_index = 0; pixel_index < 16; pixel_index++) //Turns of all pixels
       {
@@ -206,9 +214,9 @@ void loop() // after setup() runs, loop() will run over and over as long as the 
           if( ( (positionInPattern + pixel_index) & 7 ) < 2 ) 
           {
             //This if-loop makes use of a 'Bitwise AND' to divide the 16 pixels in half (7 = 8 with 'off by one')
-            //the 2 is for how many pixels will stay lit
+            //the 2 is for how many pixels will stay on
             
-             color = myColors[myColorChart][random(6)]; //Set allcolors randomly from color set
+             color = myColors[myColorChart][random(6)]; //Set all colors randomly from color set
           }
           
           pixels.setPixelColor(pixel_index, color); //Set pixel position and color
@@ -221,71 +229,136 @@ void loop() // after setup() runs, loop() will run over and over as long as the 
        break;
 
     //**********************************************************************************************
-    // Case 4: Counter-rotation + counter-fade //NEEDS work?
+    // Case 4: Counter-rotation + counter-fade
     //**********************************************************************************************
      
     case 4:
        
-        static int16_t c = 0;
+        static int16_t c = 0; //the 'start' position each time the code loops
         static int16_t d = 0;
    
-        for (uint8_t pixel_index = 0; pixel_index < 16; pixel_index++) //Loops pixel_index from 0-16
+        for (uint8_t pixel_index = 0; pixel_index < 16; pixel_index++) //Loops pixel_index from 0-15
         {
           //Remember: pixel position # increases as you rotate counter-clockwise
           
-           uint8_t color_1 = 255 / (15 - ((pixel_index + 16 - c) % 16)); //Determines the strength of color_1 (red), rotating counter-clockwise
-           uint8_t color_2 = 255 / ((pixel_index + d) % 16); //Determines the strength of color_2 (blue), rotating clockwise
+          //Determines the strength (0-255) of color_1 (red) and color_2 (blue), with some of color_1 and color_2 in all 16 pixels
+          uint8_t color_1 = 255 / (15 - ((pixel_index + 16 - c) % 16)); //brightness decreases with CW rotation: color leader rotates counter-clockwise
+          uint8_t color_2 = 255 / ((pixel_index + d) % 16); //brightness decreases with CCW rotation: color leader rotates rotating clockwise
      
-           pixels.setPixelColor(pixel_index, color_1, 0, color_2); 
-           //Sets each pixel position with R-G-B levels. 
-           //Green part is set to off, red and blue parts merge into purple behind the start/leader pixel
+          pixels.setPixelColor(pixel_index, color_1, 0, color_2);
+          //Sets each pixel position with R-G-B levels. 
+          //Green part is set to off, red and blue parts merge into purple behind the start/leader pixel
         }  
         
-        c++; //---- i think if we made one of these -- instead of ++ we could use identical math above? or at least a little simpler -Jessica
+        // ++ rotates 'start' pixel counter-clockwise
+        c++;
         d++;
   
-        c = c % 16; //Calculates the remainder of c / 16
+        c = c % 16; //Calculates the remainder of a / 16, to keep a and b = 0-15
         d = d % 16;
      
         pixels.show();
-        delay(75);
+        delay(delayTime);
 
         break;
 
     //**********************************************************************************************
-    // Case 5: Two color worms //NEEDS WORK AND COMMENTS
+    // Case 5: Two color worms
     //**********************************************************************************************
     
-    case 5: //NEEDS WORK AND COMMENTS (Some comments are similar to case 4- jessica)
+    case 5:
 
-        static int16_t a = 0;
+        static int16_t a = 0; //the 'start' position each time the code loops
         static int16_t b = 0;
+
  
         for (uint8_t pixel_index = 0; pixel_index < 16; pixel_index++)  //Sets color to each pixel position
         {
+          //Remember: pixel position # increases as you rotate counter-clockwise
+          
+          //Determines the strength (0-255) of color_1 (red) and color_2 (blue)
           //Strength decreases while rotating counter-clockwise, with some of color_1 and color_2 in all 16 pixels
-            uint8_t color_1 = 255 / ((pixel_index + 8 + a) % 16); //Determines the strength of color_1 (red), offset by 8 pixels from color_2
-            uint8_t color_2 = 255 / ((pixel_index + b) % 16); //Determines the strength of color_2 (blue) 
+          uint8_t color_1 = 255 / ((pixel_index + 8 + a) % 16); //offset by 8 pixels from color_2
+          uint8_t color_2 = 255 / ((pixel_index + b) % 16);
             
-            pixels.setPixelColor(pixel_index, color_1, 0, color_2);
+          pixels.setPixelColor(pixel_index, color_1, 0, color_2);
+          //Sets each pixel position with R-G-B levels. 
+          //Green part is set to off, red and blue parts merge into purple behind the start/leader pixel
         }
       
-        a++; // rotate clockwise?
+        a++; // rotate start pixel clockwise
         b++;
       
-        a = a % 16; //Calculates the remainder of a / 16
+        a = a % 16; //Calculates the remainder of a / 16, to keep a and b = 0-15
         b = b % 16;
         
         pixels.show();
-        delay(75);
+        delay(delayTime);
         
         break;
 
+    
     //**********************************************************************************************
-    // Case 5: Rotating Flag //NEEDS WORK AND COMMENTS
+    // Case 6: COLOR-WORM (By Ingela Rossing)
+    //**********************************************************************************************
+     
+     case 6:
+       
+       if(positionInPattern >= 16) //limit positionInPattern from 0-15
+       {
+          positionInPattern = 0;
+       }
+       
+       for(uint8_t pixel_index = 0; pixel_index < 16; pixel_index++) //Turns off all pixels
+       {
+           pixels.setPixelColor(pixel_index, 0);
+       }
+       
+       //Turn some pixels on with colors:
+       for(uint8_t color_index = 0; color_index < 6; color_index++) //Rotates through color array positions 0-5
+       {
+           uint8_t pixel_index = positionInPattern + (2 * color_index); //Set position so 2 pixels are the same color
+           color = myColors[myColorChart][color_index]; //Get color from color array
+           
+           //Set 2 pixels in a row to 'color', and make sure pixel_index is 0-15
+           pixels.setPixelColor( pixel_index % 16, color);
+           pixels.setPixelColor( (pixel_index + 1) % 16, color); 
+       }
+       
+       pixels.show();
+       positionInPattern++; //Rotate 'start' pixel one position counter-clockwise
+       delay(delayTime);
+       
+       break;
+       
+    //**********************************************************************************************
+    // Case 7: LIGHT-WORM
+    //**********************************************************************************************
+       
+    case 7:
+
+       //Color- choose the brightness of the R-G-B parts, value from 0-15
+       red = 15;
+       green = 15;
+       blue = 15;
+       
+       for(uint8_t pixel_index = 0; pixel_index < 16; pixel_index++) //Sets color of one pixel at the time
+       {
+          pixel = (positionInPattern + pixel_index) % 16; //Makes sure pixel position is 0-15
+          pixels.setPixelColor(pixel, red * pixel_index, green * pixel_index, blue * pixel_index); //As pixel_index increases, so does brightness of each color
+       }
+       
+       pixels.show();
+       positionInPattern++; //Rotate 'start' pixel one position counter-clockwise
+       delay(delayTime);
+       
+       break;
+
+    //**********************************************************************************************
+    // Case 8: Rotating Flag //NEEDS WORK AND COMMENTS
     //**********************************************************************************************
      /*
-    case 5: //NEEDS WORK AND COMMENTS
+    case 8: //NEEDS WORK AND COMMENTS
 
         uint32_t leds[16];
 
@@ -321,72 +394,16 @@ void loop() // after setup() runs, loop() will run over and over as long as the 
         o = (o + 1) % 16;
         
         pixels.show();
-        delay(75);
+        delay(delayTime);
 
         break;
         */
 
     //**********************************************************************************************
-    // Case 6: COLOR-WORM (By Ingela Rossing)
+    // Case 9: WRITE YOUR OWN PATTERN 
     //**********************************************************************************************
      
-     case 6:
-     
-       if(positionInPattern >= 16)
-       {
-          positionInPattern = 0;
-       }
-       
-       for(uint8_t pixel_index = 0; pixel_index < 16; pixel_index++) //Turns off all pixels
-       {
-           pixels.setPixelColor(pixel_index, 0);
-       }
-       
-       for(uint8_t color_index = 0; color_index < 6; color_index++) //Sets color to one pixel at the time
-       {
-           uint32_t color = 0;
-           uint8_t pixel_index = positionInPattern + (2 * color_index);
-           color = myColors[myColorChart][color_index];
-           
-           //set pixels and make sure pixel_index is in value 0-15
-           pixels.setPixelColor( pixel_index % 16, color);
-           pixels.setPixelColor( (pixel_index + 1) % 16, color); 
-       }
-       
-       pixels.show();
-       positionInPattern++;
-       delay(delayTime);
-       
-       break;
-       
-    //**********************************************************************************************
-    // Case 7: LIGHT-WORM
-    //**********************************************************************************************
-       
-    case 7:
-
-       //color, change it if you like. Value can be 0-15.
-       red = 15;
-       green = 15;
-       blue = 15;
-       
-       for(uint8_t pixel_index = 0; pixel_index < 16; pixel_index++) //Sets color to one pixel at the time
-       {
-          pixel = (positionInPattern + pixel_index) % 16;
-          pixels.setPixelColor(pixel, red * pixel_index, green * pixel_index, blue * pixel_index); 
-       }
-       
-       pixels.show();
-       positionInPattern++;
-       delay(delayTime);
-       
-       break;
-
-    //**********************************************************************************************
-    // Case 8: WRITE YOUR OWN PATTERN 
-    //**********************************************************************************************
-     
-     case 8:
+     case 9:
      
        // To run your pattern, remember to change the case/pattern in the top of the code
        
