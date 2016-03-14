@@ -54,7 +54,6 @@ Adafruit_NeoPixel pixels = Adafruit_NeoPixel(16, PIN);
     // 8: ROTATING FLAG
     // 9: WRITE YOUR OWN PATTERN
     
-    uint8_t  myPattern = 7; // ← Change this value to your desired pattern
     
   //********************************** CHOOSE A SPEED SETTING ***********************************
   
@@ -233,11 +232,7 @@ void loop() // after setup() runs, loop() will run over and over as long as the 
     //**********************************************************************************************
      
     case 4:
-       
-        static int16_t c = 0; //the 'start' position each time the code loops
-        static int16_t d = 0;
    
-        for (uint8_t pixel_index = 0; pixel_index < 16; pixel_index++) //Loops pixel_index from 0-15
         {
           //Remember: pixel position # increases as you rotate counter-clockwise
           
@@ -248,7 +243,6 @@ void loop() // after setup() runs, loop() will run over and over as long as the 
           pixels.setPixelColor(pixel_index, color_1, 0, color_2);
           //Sets each pixel position with R-G-B levels. 
           //Green part is set to off, red and blue parts merge into purple behind the start/leader pixel
-        }  
         
         // ++ rotates 'start' pixel counter-clockwise
         c++;
@@ -347,8 +341,6 @@ void loop() // after setup() runs, loop() will run over and over as long as the 
           pixel = (positionInPattern + pixel_index) % 16; //Makes sure pixel position is 0-15
           pixels.setPixelColor(pixel, red * pixel_index, green * pixel_index, blue * pixel_index); //As pixel_index increases, so does brightness of each color
        }
-       
-       pixels.show();
        positionInPattern++; //Rotate 'start' pixel one position counter-clockwise
        delay(delayTime);
        
@@ -357,41 +349,26 @@ void loop() // after setup() runs, loop() will run over and over as long as the 
     //**********************************************************************************************
     // Case 8: Rotating Flag //NEEDS WORK AND COMMENTS
     //**********************************************************************************************
-     /*
-    case 8: //NEEDS WORK AND COMMENTS
 
-        uint32_t leds[16];
-
-        uint32_t color(uint8_t r, uint8_t g, uint8_t b)
         {
             return ((uint32_t)r << 16) | ((uint32_t)g <<  8) | b; 
         }
         
-        int8_t o = 0;
 
         for (uint8_t i = 0; i < 16; ++i) 
         {
             leds[i] = color(0, 0, 255);
         }
 
-        leds[(2+o)%16] = color(255, 255, 0);
-        leds[(3+o)%16] = color(255, 255, 0);
 
-        leds[(6+o)%16] = color(255, 255, 0);
-        leds[(7+o)%16] = color(255, 255, 0);
       
-        leds[(10+o)%16] = color(255, 255, 0);
-        leds[(11+o)%16] = color(255, 255, 0);
       
-        leds[(14+o)%16] = color(255, 255, 0);
-        leds[(15+o)%16] = color(255, 255, 0);
        
         for (uint8_t i = 0; i < 16; i++) 
         {
             pixels.setPixelColor(i, leds[i]);
         }
       
-        o = (o + 1) % 16;
         
         pixels.show();
         delay(delayTime);
@@ -410,5 +387,4 @@ void loop() // after setup() runs, loop() will run over and over as long as the 
        pixels.show(); 
        delay(delayTime); 
        break; 
-    }
 }
