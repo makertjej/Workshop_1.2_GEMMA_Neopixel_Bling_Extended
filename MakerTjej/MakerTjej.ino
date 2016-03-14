@@ -14,7 +14,6 @@
 
 Adafruit_NeoPixel pixels = Adafruit_NeoPixel(16, PIN);
 
-
 //**********************************************************************************************
 // MODIFIABLE PARAMETERS - PERSONALIZE YOUR GEMMA NEOPIXELS HERE
 //**********************************************************************************************
@@ -54,6 +53,7 @@ Adafruit_NeoPixel pixels = Adafruit_NeoPixel(16, PIN);
     // 8: ROTATING FLAG
     // 9: WRITE YOUR OWN PATTERN
     
+    uint8_t  myPattern = 8; // ← Change this value to your desired pattern
     
   //********************************** CHOOSE A SPEED SETTING ***********************************
   
@@ -72,7 +72,6 @@ Adafruit_NeoPixel pixels = Adafruit_NeoPixel(16, PIN);
 // UTILITY VARIABLES
 //**********************************************************************************************
   
-  uint32_t prevTime; // Utility variable for timing
   uint32_t delayTime; // Utility variable for timing
   uint32_t color = 0xffffff; // default white
   uint8_t positionInPattern = 0; // Current position of moving pattern
@@ -81,14 +80,12 @@ Adafruit_NeoPixel pixels = Adafruit_NeoPixel(16, PIN);
 //**********************************************************************************************
 // SETUP
 //**********************************************************************************************
-
 void setup() // setup() runs once
 { 
   pixels.begin();
   
   pixels.setBrightness(20); // 1/5 brightness to save battery
-  prevTime = millis(); // read the continuous timer (ms)
-
+  
     switch (mySpeed) // where the speed timings are set
     { 
       case 0: // speed 0
@@ -113,7 +110,6 @@ void setup() // setup() runs once
 //**********************************************************************************************
 // LOOP THAT WILL RUN OVER AND OVER
 //**********************************************************************************************
-
 void loop() // after setup() runs, loop() will run over and over as long as the GEMMA has power
 { 
   uint8_t red, green, blue, pixel;
@@ -232,7 +228,12 @@ void loop() // after setup() runs, loop() will run over and over as long as the 
     //**********************************************************************************************
      
     case 4:
+    
+      //'static' variables persist beyond the function call, preserving their data between function calls
+      static int16_t c = 0; //the 'start' position each time the code loops
+      static int16_t d = 0;
    
+      for (uint8_t pixel_index = 0; pixel_index < 16; pixel_index++) //Loops pixel_index from 0-15
         {
           //Remember: pixel position # increases as you rotate counter-clockwise
           
@@ -243,6 +244,7 @@ void loop() // after setup() runs, loop() will run over and over as long as the 
           pixels.setPixelColor(pixel_index, color_1, 0, color_2);
           //Sets each pixel position with R-G-B levels. 
           //Green part is set to off, red and blue parts merge into purple behind the start/leader pixel
+       }  
         
         // ++ rotates 'start' pixel counter-clockwise
         c++;
@@ -329,7 +331,7 @@ void loop() // after setup() runs, loop() will run over and over as long as the 
     // Case 7: LIGHT-WORM
     //**********************************************************************************************
        
-    case 7:
+     case 7:
 
        //Color- choose the brightness of the R-G-B parts, value from 0-15
        red = 15;
@@ -341,40 +343,54 @@ void loop() // after setup() runs, loop() will run over and over as long as the 
           pixel = (positionInPattern + pixel_index) % 16; //Makes sure pixel position is 0-15
           pixels.setPixelColor(pixel, red * pixel_index, green * pixel_index, blue * pixel_index); //As pixel_index increases, so does brightness of each color
        }
+      
        positionInPattern++; //Rotate 'start' pixel one position counter-clockwise
+       pixels.show();
        delay(delayTime);
        
        break;
 
     //**********************************************************************************************
-    // Case 8: Rotating Flag //NEEDS WORK AND COMMENTS
+    // Case 8: Rotating Flag
     //**********************************************************************************************
-
-        {
-            return ((uint32_t)r << 16) | ((uint32_t)g <<  8) | b; 
-        }
-        
-
-        for (uint8_t i = 0; i < 16; ++i) 
-        {
-            leds[i] = color(0, 0, 255);
-        }
-
-
+     
+     case 8:
+       //This program relies on 'Bitshifting' to combine color brightnesses into a single value
       
+       static uint32_t leds[16]; //Initialize an array with 16 positions, to hold the color for each pixel. Color is stored as 32 bits
       
+       static int8_t n = 0; //'start' pixel's position
+      
+       for (uint8_t i = 0; i < 16; ++i) //Turns all pixels off
+       {
+         leds[i] = 0;
+       }
        
-        for (uint8_t i = 0; i < 16; i++) 
-        {
-            pixels.setPixelColor(i, leds[i]);
-        }
-      
-        
-        pixels.show();
-        delay(delayTime);
+       //Set brightness of R-G-B parts of pixels from 0-255. (2 pixels off, 2 on all around. Makes sure position is 0-15.)
+       leds[(2+n)%16] = color8(255, 255, 0);
+       leds[(3+n)%16] = color8(255, 255, 0);
 
-        break;
-        */
+       leds[(6+n)%16] = color8(0, 255, 0);
+       leds[(7+n)%16] = color8(0, 255, 0);
+
+       leds[(10+n)%16] = color8(0, 255, 255);
+       leds[(11+n)%16] = color8(0, 255, 255);
+
+       leds[(14+n)%16] = color8(0, 0, 255);
+       leds[(15+n)%16] = color8(255, 0, 0);
+       
+       for (uint8_t i = 0; i < 16; i++) //Sets each pixel to color in array
+       {
+         pixels.setPixelColor(i, leds[i]);
+       }
+      
+       n = (n + 1) % 16; //Increments n, and makes sure it is 0-15
+      
+       pixels.show();
+       delay(delayTime);
+      
+       break;
+
 
     //**********************************************************************************************
     // Case 9: WRITE YOUR OWN PATTERN 
@@ -386,5 +402,15 @@ void loop() // after setup() runs, loop() will run over and over as long as the 
        
        pixels.show(); 
        delay(delayTime); 
+       
        break; 
+    
+  }
 }
+
+//Function used by Case 8
+uint32_t color8(uint8_t r, uint8_t g, uint8_t b)
+       {
+         return ((uint32_t)r << 16) | ((uint32_t)g <<  8) | b; 
+         //Uses 'OR' to combine r-g-b (8-bit) values into one 32-bit value
+       }
