@@ -3,7 +3,7 @@ MAKERTJEJ.se’s
 ***
 *(Svenska)*
 
-Source kod för en workshop på Teklafestivalen, april 2015.
+Source kod för en workshop på Teklafestivalen, april 2016.
 
 #### Att installera på datorn:
 
@@ -19,7 +19,7 @@ Glöm inte micro eller mini-USB kabel (beror på vilken version av GEMMA man har
 
 *(English)*
 
-Source code for a workshop at Teklafestivalen, April 2015.
+Source code for a workshop at Teklafestivalen, April 2016.
 
 #### To install on your computer:
 
