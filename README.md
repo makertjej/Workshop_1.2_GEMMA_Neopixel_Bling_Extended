@@ -1,1 +1,1 @@
-# Workshop_1_GEMMA_Neopixel_Bling_Part2
+# Workshop_1_GEMMA_Neopixel_Bling_Extended
